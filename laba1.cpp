@@ -48,7 +48,7 @@ int main()
 
 int main()
 {
-    cout << "Hello Word!\n";
+    cout << "Hello Git!\n";
     Pipe truba;
     truba.name = "Uchastok 1\n";
     cout << truba.name;

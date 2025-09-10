@@ -45,3 +45,12 @@ int main()
     cout << truba.name;
     Menu(truba);
 }
+
+int main()
+{
+    cout << "Hello Word!\n";
+    Pipe truba;
+    truba.name = "Uchastok 1\n";
+    cout << truba.name;
+    Menu(truba);
+}

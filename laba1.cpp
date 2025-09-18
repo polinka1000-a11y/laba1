@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include <locale>
+#include <locale> 
 #include <fstream>
 using namespace std;
 
@@ -18,7 +18,55 @@ struct Compress {
     string classification;
 };
 
-// сохранить данные в файл
+// функции проверки ввода
+int InputInt(const string& msg, int minVal, int maxVal) {
+    int x;
+    cout << msg;
+    while (!(cin >> x) || x < minVal || x > maxVal) {
+        cout << "Ошибка ввода.\nВведите снова: ";
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+    cin.ignore();
+    return x;
+}
+
+float InputFloat(const string& msg, float minVal, float maxVal) {
+    float x;
+    cout << msg;
+    while (!(cin >> x) || x < minVal || x > maxVal) {
+        cout << "Ошибка ввода.\nВведите снова: ";
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+    cin.ignore();
+    return x;
+}
+
+bool InputBool(const string& msg) {
+    int x;
+    cout << msg;
+    while (!(cin >> x) || (x != 0 && x != 1)) {
+        cout << "Ошибка ввода.\nВведите снова (0 или 1): ";
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+    cin.ignore();
+    return x;
+}
+
+string InputString(const string& msg) {
+    string s;
+    cout << msg;
+    getline(cin, s);
+    while (s.empty()) {
+        cout << "Ошибка ввода.\nВведите снова: ";
+        getline(cin, s);
+    }
+    return s;
+}
+
+// сохранение/загрузка из файла
 void SaveToFile(const Pipe& t, const Compress& c) {
     ofstream fout("data.txt");
     if (!fout) {
@@ -31,7 +79,6 @@ void SaveToFile(const Pipe& t, const Compress& c) {
     cout << "Данные сохранены\n";
 }
 
-// загрузить данные из файла
 void FromFile(Pipe& t, Compress& c) {
     ifstream fin("data.txt");
     if (!fin) {
@@ -40,17 +87,22 @@ void FromFile(Pipe& t, Compress& c) {
     }
     getline(fin, t.name);
     fin >> t.length >> t.diametr >> t.repair;
-    fin.ignore(); // убрать лишний перевод строки
+    fin.ignore();
     getline(fin, c.name);
     fin >> c.count >> c.count_working;
     fin.ignore();
     getline(fin, c.classification);
     fin.close();
-    cout << "Данные загружены\n";
+
+    if (t.name.empty() && c.name.empty())
+        cout << "Файл пустой или поврежден\n";
+    else
+        cout << "Данные загружены\n";
 }
 
+// меню
 void Menu(Pipe& t, Compress& c) {
-    while (1) {
+    while (true) {
         cout << "\nВыберите действие: \n"
             << "1. Добавить трубу\n"
             << "2. Добавить КС\n"
@@ -61,88 +113,28 @@ void Menu(Pipe& t, Compress& c) {
             << "7. Загрузить из файла\n"
             << "0. Выход\n> ";
 
-        int option;
-        cin >> option;
-        cin.ignore(); // убрать \n после числа
+        int option = InputInt("", 0, 7);
 
         switch (option) {
         case 1:
             cout << "-- Добавление трубы --\n";
-
-            cout << "Введите название трубы: ";
-            getline(cin, t.name); // для ввода названия с пробелом
-            while (t.name.empty()) { // проверка названия
-                cout << "Ошибка ввода.\nВведите снова: ";
-                getline(cin, t.name);
-            }
-
-            // проверка длины
-            cout << "Введите длину (км): ";
-            while (!(cin >> t.length) || t.length <= 0) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                cin.clear();             // сброс ошибки
-                cin.ignore(10000, '\n'); // очистка буфера
-            }
-
-            // проверка диаметра
-            cout << "Введите диаметр (мм): ";
-            while (!(cin >> t.diametr) || t.diametr <= 0) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
-
-            // проверка статуса ремонта
-            cout << "В ремонте? (1 - да, 0 - нет): ";
-            while (!(cin >> t.repair) || (t.repair != 0 && t.repair != 1)) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
+            t.name = InputString("Введите название трубы: ");
+            t.length = InputFloat("Введите длину (км): ", 0.1, 1000000);
+            t.diametr = InputInt("Введите диаметр (мм): ", 1, 10000);
+            t.repair = InputBool("В ремонте? (1 - да, 0 - нет): ");
             break;
 
         case 2:
             cout << "-- Добавление КС --\n";
-
-            // проверка названия
-            cout << "Введите название КС: ";
-            getline(cin, c.name);
-            while (c.name.empty()) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                getline(cin, c.name);
-            }
-
-            // проверка количества цехов
-            cout << "Введите количество цехов: ";
-            while (!(cin >> c.count) || c.count <= 0) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
-
-            // проверка количества цехов в работе
-            cout << "Введите количество цехов в работе: ";
-            while (!(cin >> c.count_working) || c.count_working < 0 || c.count_working > c.count) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
-
-            cin.ignore(); // очищаем буфер после чисел
-
-            // проверка класса станции
-            cout << "Класс станции: ";
-            getline(cin, c.classification);
-            while (c.classification.empty()) {
-                cout << "Ошибка ввода.\nВведите снова: ";
-                getline(cin, c.classification);
-            }
+            c.name = InputString("Введите название КС: ");
+            c.count = InputInt("Введите количество цехов: ", 1, 10000);
+            c.count_working = InputInt("Введите количество цехов в работе: ", 0, c.count);
+            c.classification = InputString("Класс станции: ");
             break;
 
         case 3:
             cout << "\n-- Все объекты --\n";
-
-            if (!t.name.empty()) { // если данные введены
+            if (!t.name.empty()) {
                 cout << "\n--- ТРУБА ---\n";
                 cout << "Название: " << t.name << "\n";
                 cout << "Длина: " << t.length << " км\n";
@@ -165,8 +157,7 @@ void Menu(Pipe& t, Compress& c) {
 
         case 4:
             cout << "-- Редактирование трубы --\n";
-            cout << "Изменить статус ремонта (1 - да, 0 - нет): ";
-            cin >> t.repair;
+            t.repair = InputBool("Изменить статус ремонта (1 - да, 0 - нет): ");
             break;
 
         case 5:
@@ -175,21 +166,19 @@ void Menu(Pipe& t, Compress& c) {
                 cout << "Сначала добавьте КС!\n";
                 break;
             }
-            cout << "1. Запустить цех\n2. Остановить цех\n> ";
-            int action;
-            cin >> action;
-            if (action == 1) {
-                if (c.count_working < c.count)
-                c.count_working++;
-                else
-                    cout << "Все цеха уже работают!\n";
-            } else if (action == 2) {
-                if (c.count_working > 0)
-                    c.count_working--;
-                else
-                    cout << "Нет работающих цехов!\n";
-            } else {
-                cout << "Неверный ввод!\n";
+            {
+                int action = InputInt("1. Запустить цех\n2. Остановить цех\n> ", 1, 2);
+                if (action == 1) {
+                    if (c.count_working < c.count)
+                        c.count_working++;
+                    else
+                        cout << "Все цеха уже работают!\n";
+                } else {
+                    if (c.count_working > 0)
+                        c.count_working--;
+                    else
+                        cout << "Нет работающих цехов!\n";
+                }
             }
             break;
 
@@ -204,18 +193,12 @@ void Menu(Pipe& t, Compress& c) {
         case 0:
             cout << "Выход...\n";
             return;
-
-        default:
-            cout << "Неверный ввод!\n";
-            break;
         }
     }
 }
 
 int main() {
-
     Pipe truba;
     Compress station;
     Menu(truba, station);
-    
 }
